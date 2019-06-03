@@ -1,6 +1,8 @@
 const express = require('express');
 const indexRouter = require('./routers/index');
 const usersRouter = require('./routers/users');
+const flash = require('connect-flash');
+const session = require('express-session');
 
 const mongoose = require('mongoose');
 mongoose.connect("mongodb://localhost/users", {useNewUrlParser: true});
@@ -20,6 +22,25 @@ app.set('view engine', 'ejs');
 
 //Bodyparser
 app.use(express.urlencoded({extended: false}));
+
+// Express session
+app.use(session({
+    secret: 'secret',
+    resave: true,
+    saveUninitialized: true
+}));
+
+// Connect flash
+app.use(flash());
+
+
+// Global Vars
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    next();
+})
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

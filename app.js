@@ -5,6 +5,8 @@ const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
 
+var MongoDBSessionStore = require('connect-mongodb-session')(session);
+
 // Passport config
 require('./config/passport')(passport);
 
@@ -19,6 +21,15 @@ db.once('open', function() {
 const app = express();
 const expressLayouts = require('express-ejs-layouts');
 
+var store = new MongoDBSessionStore({
+  uri: 'mongodb://localhost:27017/session_storage',
+  collection: 'mySessions'
+});
+
+// Catch errors
+store.on('error', function(error) {
+  console.log(error);
+});
 
 //EJS
 app.use(expressLayouts);
@@ -29,6 +40,10 @@ app.use(express.urlencoded({extended: false}));
 
 // Express session
 app.use(session({
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+    },
+    store: store,
     secret: 'secret',
     resave: true,
     saveUninitialized: true
